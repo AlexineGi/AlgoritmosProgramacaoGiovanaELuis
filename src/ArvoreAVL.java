@@ -1,14 +1,16 @@
+import java.util.Objects;
+
 public class ArvoreAVL {
 
     private No raiz;
 
     // públicos (obrigatórios)
     public void inserir(int v) {
-
+        raiz = inserirRec(raiz, v);
     }
 
     public void remover(int v) {
-
+        this.raiz = removerRec(this.raiz, v);
     }
 
     public boolean buscar(int v) {
@@ -65,32 +67,149 @@ public class ArvoreAVL {
     }
 
     public boolean contem(int v) {
-        return false;
+        return buscar(v);
     }
 
     // privados (balanceamento)
     private int altura(No n) {
-        return 1;
+        if (n == null) {
+            return 0;
+        }
+
+        return 1 + Math.max(altura(n.getEsquerda()), altura(n.getDireita()));
     }
 
     private int fatorBalanceamento(No n) {
-        return 1;
+        if (n == null) {
+            return 0;
+        }
+
+        return altura(n.getEsquerda()) - altura(n.getDireita());
     }
 
     private No rotacaoDireita(No y) {
-        return new No(1);
+        No x = y.getEsquerda();
+        No z = x.getDireita();
+        x.setDireita(y);
+        y.setEsquerda(z);
+
+        y.setAltura(1 + Math.max(altura(y.getEsquerda()), altura(y.getDireita())));
+        x.setAltura(1 + Math.max(altura(x.getEsquerda()), altura(x.getDireita())));
+
+        return x;
     }
 
     private No rotacaoEsquerda(No x) {
-        return new No(2);
+        No y = x.getDireita();
+        No z = y.getEsquerda();
+        y.setEsquerda(x);
+        x.setDireita(z);
+
+        x.setAltura(1 + Math.max(altura(x.getEsquerda()), altura(x.getDireita())));
+        y.setAltura(1 + Math.max(altura(y.getEsquerda()), altura(y.getDireita())));
+
+        return y;
     }
 
     private No inserirRec(No n, int v) {
-        return new No(1);
+        if (n == null) {
+            return new No(v);
+        }
+
+        if (v < n.getValor()) {
+            n.setEsquerda(inserirRec(n.getEsquerda(), v));
+        } else if (v > n.getValor()) {
+            n.setDireita(inserirRec(n.getDireita(), v));
+        } else {
+            return n;
+        }
+
+        n.setAltura(1 + Math.max(altura(n.getEsquerda()), altura(n.getDireita())));
+
+        if (fatorBalanceamento(n) < -1) {
+            if (v > n.getDireita().getValor()) {
+                return rotacaoEsquerda(n);
+            }
+
+            if (v < n.getDireita().getValor()) {
+                n.setDireita(rotacaoDireita(n.getDireita()));
+                return rotacaoEsquerda(n);
+            }
+        }
+
+        if (fatorBalanceamento(n) > 1) {
+            if (v < n.getEsquerda().getValor()) {
+                return rotacaoDireita(n);
+            }
+
+            if (v > n.getEsquerda().getValor()) {
+                n.setEsquerda(rotacaoEsquerda(n.getEsquerda()));
+                return rotacaoDireita(n);
+            }
+        }
+
+        return n;
     }
 
     private No removerRec(No n, int v) {
-        return new No(1);
+        if (Objects.isNull(n)) {
+            return null;
+        }
+
+        if (v < n.getValor()) {
+            n.setEsquerda(removerRec(n.getEsquerda(), v));
+        } else if (v > n.getValor()) {
+            n.setDireita(removerRec(n.getDireita(), v));
+        } else {
+            if (n.getEsquerda() == null || n.getDireita() == null) {
+                No temp = (n.getEsquerda() != null) ? n.getEsquerda() : n.getDireita();
+
+                if (Objects.isNull(temp)) {
+                    n = null;
+                } else {
+                    n = temp;
+                }
+            } else {
+                No temp = n.getDireita();
+
+                while (temp.getEsquerda() != null) {
+                    temp = temp.getEsquerda();
+                }
+
+                n.setValor(temp.getValor());
+                n.setDireita(removerRec(n.getDireita(), temp.getValor()));
+            }
+        }
+
+        if (n == null) {
+            return null;
+        }
+
+        n.setAltura(1 + Math.max(altura(n.getEsquerda()), altura(n.getDireita())));
+
+        int balance = fatorBalanceamento(n);
+
+        if (balance > 1 && fatorBalanceamento(n.getEsquerda()) >= 0) {
+            return rotacaoDireita(n);
+        }
+
+        if (balance > 1 && fatorBalanceamento(n.getEsquerda()) < 0) {
+            n.setEsquerda(rotacaoEsquerda(n.getEsquerda()));
+
+            return rotacaoDireita(n);
+        }
+
+        if (balance < -1 && fatorBalanceamento(n.getDireita()) <= 0) {
+            return rotacaoEsquerda(n);
+        }
+
+        if (balance < -1 && fatorBalanceamento(n.getDireita()) > 0) {
+            n.setDireita(rotacaoDireita(n.getDireita()));
+
+            return rotacaoEsquerda(n);
+        }
+
+        return n;
     }
 
     private void pre(No n, StringBuilder sb) {
