@@ -67,7 +67,22 @@ public class ArvoreAVL {
     }
 
     public boolean contem(int v) {
-        return buscar(v);
+        StringBuilder caminho = new StringBuilder();
+        No atual = raiz;
+
+        while (atual != null) {
+            caminho.append(atual.getValor()).append(" ");
+
+            if (v == atual.getValor()) {
+                return true;
+            } else if (v < atual.getValor()) {
+                atual = atual.getEsquerda();
+            } else {
+                atual = atual.getDireita();
+            }
+        }
+
+        return false;
     }
 
     // privados (balanceamento)
